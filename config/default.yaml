@@ -1,0 +1,468 @@
+detection:
+  thresholds:
+    auth_failed_login: 3
+    mail_failed_login: 3
+    mail_unique_usernames: 3
+    repeated_http_error: 3
+    success_after_failures_min_prior_failures: 2
+    multi_source_min_events_per_source: 2
+    mail_spray_min_total_failures: 5
+    http_burst_request_count: 100
+  windows:
+    auth_failed_login_seconds: 900
+    mail_failed_login_seconds: 900
+    mail_unique_usernames_seconds: 900
+    repeated_http_error_seconds: 900
+    http_burst_seconds: 60
+    success_after_failures_seconds: 3600
+    web_to_auth_seconds: 3600
+    web_to_ban_seconds: 3600
+    multi_source_seconds: 3600
+  incidents:
+    gap_seconds: 1800
+    minimum_evidence: 2
+  rules:
+    root_login_attempt: true
+    repeated_failed_login: true
+    success_after_failures: true
+    suspicious_web_probe: true
+    repeated_http_error_responses: true
+    repeated_mail_auth_failures: true
+    mail_password_spray_attempt: true
+    mail_success_after_failures: true
+    ip_banned_after_auth_activity: true
+    ip_banned_after_mail_activity: true
+    ip_banned_after_web_activity: true
+    web_probe_followed_by_auth_activity: true
+    web_probe_followed_by_fail2ban_ban: true
+    multi_source_ip_activity: true
+    http_request_burst: true
+  severities:
+    root_login_attempt: medium
+    repeated_failed_login: medium
+    success_after_failures: high
+    suspicious_web_probe: medium
+    repeated_http_error_responses: medium
+    repeated_mail_auth_failures: medium
+    mail_password_spray_attempt: high
+    mail_success_after_failures: high
+    ip_banned_after_auth_activity: medium
+    ip_banned_after_mail_activity: medium
+    ip_banned_after_web_activity: medium
+    web_probe_followed_by_auth_activity: medium
+    web_probe_followed_by_fail2ban_ban: medium
+    multi_source_ip_activity: high
+    http_request_burst: medium
+
+reporting:
+  limits:
+    top_noisy_source_ips: 5
+    top_risky_source_ips: 5
+    repeat_banned_ips: 5
+    returned_after_ban_ips: 5
+  persistence:
+    repeat_banned_min_bans: 2
+    persistent_multi_source_min_sources: 2
+    persistent_multi_source_min_total_events: 4
+    root_attempt_repeat_min_auth_events: 3
+    returned_after_ban_min_returns: 1
+  incident_priority:
+    enabled: true
+    limit: 5
+    minimum_score: 1
+    weights:
+      severity:
+        low: 1
+        medium: 2
+        high: 4
+        critical: 6
+      total_findings: 0
+      total_events: 0
+      ban_count: 1
+      repeat_banned: 3
+      returned_after_ban: 4
+      persistent_multi_source: 3
+      root_attempt_repeat_ip: 3
+      auth_web_crossover: 3
+      bursty_activity: 2
+      suspicious_web_probe: 2
+      web_probe_followed_by_ban: 3
+
+nginx:
+  repeated_error_threshold: 3
+  error_status_codes:
+    - 400
+    - 401
+    - 403
+    - 404
+    - 408
+    - 429
+    - 444
+    - 500
+    - 502
+    - 503
+    - 504
+  suspicious_paths:
+    - "/.DS_Store"
+    - "/wp-login.php"
+    - "/wp-admin"
+    - "/wp-admin/"
+    - "/wp-admin/install.php"
+    - "/wp-admin/setup-config.php"
+    - "/wp-config.php"
+    - "/wp-config.php.bak"
+    - "/wp-config.php.save"
+    - "/xmlrpc.php"
+    - "/.env"
+    - "/.env.backup"
+    - "/.env.bak"
+    - "/.env.dev"
+    - "/.env.example"
+    - "/.env.local"
+    - "/.env.old"
+    - "/.env.prod"
+    - "/.env.production"
+    - "/.env.save"
+    - "/.env.test"
+    - "/.git/config"
+    - "/.git/HEAD"
+    - "/.git/index"
+    - "/.gitlab-ci.yml"
+    - "/.hg/hgrc"
+    - "/.idea/workspace.xml"
+    - "/.npmrc"
+    - "/.ssh/authorized_keys"
+    - "/.svn/entries"
+    - "/.vscode/settings.json"
+    - "/.well-known/security.txt"
+    - "/.well-known/traffic-advice"
+    - "/.well-known/change-password"
+    - "/admin"
+    - "/admin/"
+    - "/admin.php"
+    - "/administrator"
+    - "/administrator/"
+    - "/admin/login"
+    - "/admin/login.php"
+    - "/adminer"
+    - "/adminer.php"
+    - "/backup"
+    - "/backup.zip"
+    - "/backups.zip"
+    - "/boaform/admin/formLogin"
+    - "/cgi-bin/luci"
+    - "/console"
+    - "/containers/json"
+    - "/debug/default/view"
+    - "/docker-compose.yml"
+    - "/dump.sql"
+    - "/env"
+    - "/etc/passwd"
+    - "/hnap1"
+    - "/HNAP1"
+    - "/hudson/script"
+    - "/jenkins/script"
+    - "/login.action"
+    - "/manager/html"
+    - "/owa/auth/logon.aspx"
+    - "/phpinfo.php"
+    - "/phpmyadmin"
+    - "/phpMyAdmin"
+    - "/phpmyadmin/"
+    - "/phpmyadmin/index.php"
+    - "/pma"
+    - "/portal"
+    - "/remote/login"
+    - "/rpc.php"
+    - "/server-status"
+    - "/solr/admin/info/system"
+    - "/swagger-ui.html"
+    - "/telescope/requests"
+    - "/user/login"
+    - "/vendor/.env"
+    - "/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php"
+    - "/vendor/phpunit/phpunit/Util/PHP/eval-stdin.php"
+    - "/web.config"
+    - "/_all_dbs"
+    - "/_cat/indices"
+    - "/_ignition/execute-solution"
+    - "/_profiler/phpinfo"
+    - "/actuator"
+    - "/actuator/env"
+    - "/actuator/gateway/routes"
+    - "/actuator/heapdump"
+    - "/actuator/health"
+    - "/actuator/jolokia"
+    - "/actuator/logfile"
+    - "/actuator/prometheus"
+    - "/actuator/refresh"
+    - "/actuator/routes"
+    - "/actuator/threaddump"
+  suspicious_path_patterns:
+    - '(?:^|/)\.\.(?:/|%2f|%252f|\\)'
+    - '(?:%2e%2e(?:%2f|/|%5c)|%252e%252e(?:%252f|%255c))'
+    - '(?:^|[/?&;])(?:bin|usr|sbin|etc|proc|sys|dev)/(?:sh|bash|dash|zsh|busybox|passwd|shadow)\b'
+    - '(?:^|[/?&;])(?:cat|curl|wget|bash|sh|chmod|chown|nc|netcat|perl|python|python3)\b'
+    - '(?:;|\||`|\$\(|\${)'
+    - '(?:%00|\\x00|\x00)'
+    - '(?:/|^)(?:cgi-bin|\.git|\.svn|\.hg)(?:/|$)'
+    - '(?:/|^)(?:backup|backups|dump|db)(?:[_\-.].*)?\.(?:zip|tar|gz|tgz|bz2|7z|sql)(?:$|[/?#])'
+    - '^/[a-z][a-z0-9]{1,7}\.php(?:[?#].*)?$'
+
+baseline:
+  ignored_source_ips: []
+  ignored_source_cidrs: []
+  ignored_usernames: []
+  ignored_nginx_paths: []
+  ignored_user_agent_patterns: []
+
+journald:
+  # Master switch for --journal ingestion of security-relevant units via
+  # the local journalctl binary (no network involved). Use on journald-only
+  # systems that have no /var/log/auth.log and friends.
+  enabled: true
+  # Seconds before a journalctl subprocess is killed.
+  timeout_seconds: 30
+  # Journald units scanned per log source when --journal is used. Entries
+  # are reconstructed into the classic log line formats the file parsers
+  # already understand (syslog lines for auth/mail; the raw journald
+  # MESSAGE for fail2ban and nginx).
+  units:
+    auth:
+      - ssh
+      - sshd
+    fail2ban:
+      - fail2ban
+    nginx:
+      - nginx
+    mail:
+      - postfix
+      - dovecot
+
+host:
+  collectors:
+    processes: true
+    network: true
+    socket_fds: true
+    modules: true
+    users: true
+    services: true
+    cron: true
+    authorized_keys: true
+    shell_profiles: true
+    sudoers: true
+  max_process_cmdline_bytes: 4096
+
+audit:
+  rules:
+    passwordless_sudo: true
+    suid_sgid_binaries: true
+    world_writable_system_files: true
+    ssh_hardening: true
+    exposed_services: true
+    kernel_module_load_unrestricted: true
+    core_dumps_enabled: true
+    suspicious_systemd_timers: true
+    suspicious_cron_entries: true
+    writable_path_directories: true
+    empty_password_accounts: true
+    ld_preload_injection: true
+    uid_zero_accounts: true
+    kernel_tainted: true
+    hidden_kernel_module: true
+    file_capabilities: true
+  severities:
+    passwordless_sudo: high
+    suid_sgid_binaries: medium
+    world_writable_system_files: medium
+    ssh_hardening: medium
+    exposed_services: low
+    kernel_module_load_unrestricted: high
+    core_dumps_enabled: low
+    suspicious_systemd_timers: medium
+    suspicious_cron_entries: medium
+    writable_path_directories: medium
+    empty_password_accounts: critical
+    ld_preload_injection: critical
+    uid_zero_accounts: high
+    kernel_tainted: low
+    hidden_kernel_module: high
+    # Per-finding severity overrides this: dangerous capabilities (cap_setuid,
+    # cap_sys_admin, ...) are high, benign ones (cap_net_raw on ping) are low.
+    file_capabilities: medium
+  suid_search_paths:
+    - /bin
+    - /sbin
+    - /usr/bin
+    - /usr/sbin
+    - /usr/local/bin
+    - /usr/local/sbin
+  world_writable_search_paths:
+    - /etc
+    - /usr/bin
+    - /usr/sbin
+    - /bin
+    - /sbin
+    - /lib
+    - /lib64
+    - /usr/lib
+    - /usr/lib64
+  exposed_services_whitelist: []
+  # Exact binary paths whose file capabilities are expected on this host;
+  # matching files produce no file_capabilities finding. Many distributions
+  # legitimately ship cap_net_raw on ping, for example:
+  # allowed_capability_files:
+  #   - /usr/bin/ping
+  allowed_capability_files: []
+
+integrity:
+  monitored_paths:
+    - /etc/passwd
+    - /etc/shadow
+    - /etc/group
+    - /etc/sudoers
+    - /etc/ssh/sshd_config
+    - /etc/crontab
+  monitored_directories:
+    - /etc/cron.d
+    - /etc/cron.daily
+    - /etc/cron.hourly
+    - /etc/cron.weekly
+    - /etc/cron.monthly
+    - /etc/sudoers.d
+    - /etc/ssh/sshd_config.d
+    - /etc/systemd/system
+  ignore_patterns: []
+  hash_algorithm: sha256
+  max_file_size_bytes: 104857600
+
+kernel:
+  enabled: true
+  probe_object_path: null
+  pin_path: /sys/fs/bpf/traxerax-lite
+  event_types:
+    - execve
+    - kernel_module_load
+    - bpf_prog_load
+    - commit_creds
+    - memfd_create
+    - unlink
+    - ptrace
+    - mount
+    - setns
+    - process_exit
+    - rename
+  suspicious_parent_comms:
+    - apache2
+    - httpd
+    - nginx
+    - mysql
+    - postgres
+    - redis-server
+    - mongod
+  suspicious_exec_paths:
+    - /tmp
+    - /var/tmp
+    - /dev/shm
+    - /run
+    - /run/user
+  # Noise allowlists: matching kernel events are still stored in the
+  # database but do not produce findings. Extend these per host, or rely on
+  # the changes: section to catch new modules over time.
+  # Ubiquitous distro modules that load during normal operation.
+  allowed_kernel_modules:
+    - overlay
+    - nf_tables
+    - nft_ct
+    - x_tables
+    - wireguard
+    - vboxguest
+    - snd
+  # Processes allowed to load BPF programs without a finding.
+  # "rootwatch-loade" is this tool's own loader (rootwatch-loader) with the
+  # comm truncated to 15 chars by the kernel (TASK_COMM_LEN - 1).
+  allowed_bpf_load_comms:
+    - systemd
+    - rootwatch-loade
+    - bpftool
+  # Processes whose credential changes are expected (privilege transitions).
+  allowed_cred_change_comms:
+    - sudo
+    - su
+    - login
+    - sshd
+    - pkexec
+    - polkitd
+  # Processes expected to delete files under /var/log (log rotation and
+  # journaling). "systemd-journal" is journald's truncated comm.
+  allowed_log_maintenance_comms:
+    - logrotate
+    - systemd-journal
+    - rsyslogd
+  # Processes allowed to ptrace other processes without a finding.
+  allowed_ptrace_comms:
+    - gdb
+    - strace
+    - ltrace
+  # Processes expected to enter other namespaces (container runtimes/tools).
+  allowed_setns_comms:
+    - systemd
+    - containerd
+    - dockerd
+    - podman
+    - nsenter
+  # Processes expected to run from temporary/writable paths (exe or cwd);
+  # suppresses suspicious_process_location findings by comm. Empty by
+  # default; extend per host if a distro service legitimately runs from
+  # /run or similar.
+  allowed_process_path_comms: []
+  # memfd_create names (exact, case-insensitive) that escalate the grouped
+  # memfd_create finding from low to medium. Empty by default — bare
+  # memfd creation is benign desktop noise (Wayland, PipeWire); pin names
+  # here if a specific anonymous file is suspicious on this host.
+  suspicious_memfd_names: []
+
+daemon:
+  interval_seconds: 300
+  run_audit: true
+  run_monitor: true
+  run_integrity_scan: false
+  quiet_when_clean: true
+  # Delete host_state_records and kernel_events older than this many days
+  # on each daemon tick; 0 disables pruning.
+  retention_days: 30
+
+alerts:
+  # Master switch for alert dispatch and review drops.
+  enabled: true
+  # Minimum severity that triggers terminal warnings and desktop
+  # notifications: low, medium, high, or critical.
+  min_severity: medium
+  # Send one desktop notification per run via the local notify-send binary
+  # when findings at or above min_severity are present (no network involved).
+  desktop_notify: true
+  # Print a styled warning banner for text-format output.
+  terminal_warning: true
+  # Directory where per-run JSON review drops (and latest.json) are written.
+  drop_dir: data/output/drops
+  # Maximum number of review drops kept; oldest are pruned first.
+  max_drops: 100
+
+changes:
+  # Master switch for cross-run host state change detection. The first run
+  # with an empty history establishes the baseline and produces no findings;
+  # use --learn-baseline to re-baseline after intentional system changes.
+  enabled: true
+  # Per-category toggles.
+  systemd_units: true
+  cron: true
+  authorized_keys: true
+  shell_profiles: true
+  sudoers: true
+  users: true
+  kernel_modules: true
+  listening_ports: true
+  # New listeners on these ports are not flagged.
+  ignored_listen_ports: []
+  # Newly-seen kernel modules with these names are not flagged.
+  ignored_kernel_modules: []

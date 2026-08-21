@@ -1,0 +1,20 @@
+[Unit]
+Description=traxerax-lite host defense and audit daemon
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/traxerax-lite
+ExecStart=/opt/traxerax-lite/venv/bin/python -m traxerax_lite.main --daemon --config /opt/traxerax-lite/config/default.yaml
+Restart=on-failure
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+# Root is required to attach the eBPF probe. Many checks still work when run as
+# a non-root user with sufficient read permissions.
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

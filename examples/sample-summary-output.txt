@@ -1,0 +1,83 @@
+INFO: 
+[SUMMARY]
+INFO: parsed_events=10
+INFO: generated_findings=12
+INFO: database=/tmp/traxerax-lite-demo/traxerax_lite.db
+INFO: [REPORT] summary
+
+reporting_window:
+  - first_seen: 2026-03-25 10:00:01
+  - last_seen: 2026-03-25 10:04:00
+  - duration: 3m59s
+
+environment_overview:
+  - total_events: 8
+  - total_findings: 12
+  - total_requests: 4
+  - suspicious_requests: 3
+  - total_unique_source_ips: 3
+  - total_unique_suspicious_ips: 2
+  - total_unique_banned_ips: 2
+  - total_ips_with_repeated_bans: 0
+  - total_ips_that_returned_after_ban: 0
+
+ratios:
+  - suspicious_requests_pct_of_all_requests: 3/4 (75.0%)
+  - finding_bearing_ips_pct_of_unique_source_ips: 2/3 (66.7%)
+  - repeat_banned_ips_pct_of_banned_ips: 0/2 (0.0%)
+  - returned_after_ban_ips_pct_of_banned_ips: 0/2 (0.0%)
+
+bottom_line_assessment:
+  - overall_assessment: This does not look like ordinary background radiation alone; at least one IP shows targeted or persistent follow-up behavior.
+  - normal_background_radiation_dominant: no
+  - likely_targeted_activity_present: yes
+  - fail2ban_appeared_effective: yes: bans were recorded and no post-ban return activity was observed
+  - evidence_of_persistence_beyond_commodity_scanning: no
+
+event_counts_by_type:
+  - nginx_suspicious_request: 3
+  - ssh_failed_login: 3
+  - nginx_request: 1
+  - ssh_root_login_attempt: 1
+
+finding_counts_by_type:
+  - ip_banned_after_auth_activity: 2
+  - ip_banned_after_web_activity: 2
+  - suspicious_web_probe: 2
+  - web_probe_followed_by_fail2ban_ban: 2
+  - multi_source_ip_activity: 1
+  - repeated_failed_login: 1
+  - root_login_attempt: 1
+  - web_probe_followed_by_auth_activity: 1
+
+top_risky_source_ips:
+  - 198.51.100.23: score=35 severity=mediumx6,highx1 bans=1 reasons=mediumx6,highx1,bans=1,multi_source,root_attempt_repeat,auth_web_crossover,bursty_activity,suspicious_web_probes=2,web_probe_followed_by_ban
+  - 203.0.113.44: score=19 severity=mediumx5 bans=1 reasons=mediumx5,bans=1,auth_web_crossover,suspicious_web_probes=1,web_probe_followed_by_ban
+
+incident_queue:
+  - incident_id=3 ip=198.51.100.23 score=66 severity=high window=59s evidence=13 summary=root_login_attempt, repeated_failed_login
+  - incident_id=4 ip=203.0.113.44 score=49 severity=medium window=1m50s evidence=8 summary=suspicious_web_probe, web_probe_followed_by_auth_activity
+
+top_noisy_source_ips:
+  - 198.51.100.23: events=5 nginx=2 suspicious_requests=2 findings=7 bans=1
+  - 203.0.113.44: events=2 nginx=1 suspicious_requests=1 findings=5 bans=1
+  - 192.0.2.15: events=1 nginx=1 suspicious_requests=0 findings=0 bans=0
+
+auth_ips_with_enforcement:
+  - 198.51.100.23
+  - 203.0.113.44
+
+root_attempts_followed_by_ban:
+  - 198.51.100.23
+
+repeat_banned_ips:
+  - none
+
+returned_after_ban_ips:
+  - none
+
+persistent_multi_source_ips:
+  - 198.51.100.23: events=5 sources=2
+
+root_attempt_ips_with_repeat_activity:
+  - 198.51.100.23: auth_events=3 root_attempts=1

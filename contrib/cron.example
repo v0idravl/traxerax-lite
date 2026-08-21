@@ -1,0 +1,8 @@
+# Run an audit every 5 minutes and only emit output when findings are present.
+# Adjust the path and virtual environment to match your installation.
+
+*/5 * * * * root cd /opt/traxerax-lite && PYTHONPATH=src /opt/traxerax-lite/venv/bin/python -m traxerax_lite.main --audit --quiet-when-clean >> /var/log/traxerax-lite-audit.log 2>&1
+
+# Build the integrity baseline once per day, then scan for changes hourly.
+0 2 * * * root cd /opt/traxerax-lite && PYTHONPATH=src /opt/traxerax-lite/venv/bin/python -m traxerax_lite.main --integrity-baseline
+0 * * * * root cd /opt/traxerax-lite && PYTHONPATH=src /opt/traxerax-lite/venv/bin/python -m traxerax_lite.main --integrity-scan --quiet-when-clean >> /var/log/traxerax-lite-integrity.log 2>&1
