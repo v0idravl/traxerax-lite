@@ -1,4 +1,17 @@
-# traxerax-lite
+```text
+████████╗██████╗  █████╗ ██╗  ██╗███████╗██████╗  █████╗ ██╗  ██╗     ██╗
+╚══██╔══╝██╔══██╗██╔══██╗╚██╗██╔╝██╔════╝██╔══██╗██╔══██╗╚██╗██╔╝     ██║
+   ██║   ██████╔╝███████║ ╚███╔╝ █████╗  ██████╔╝███████║ ╚███╔╝█████╗██║
+   ██║   ██╔══██╗██╔══██║ ██╔██╗ ██╔══╝  ██╔══██╗██╔══██║ ██╔██╗╚════╝██║
+   ██║   ██║  ██║██║  ██║██╔╝ ██╗███████╗██║  ██║██║  ██║██╔╝ ██╗     ███████╗
+   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝     ╚══════╝
+  linux host defense · logs + telemetry + ebpf · offline by design
+```
+
+![python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
+![deps](https://img.shields.io/badge/dependencies-PyYAML%20only-44CC11)
+![kernel](https://img.shields.io/badge/kernel%20telemetry-optional%20eBPF-1BB91F)
+![tests](https://img.shields.io/badge/tests-379%20offline-89E051)
 
 Lightweight, self-contained Linux host defense and audit system. It detects
 compromise, compromise attempts, persistence, misconfiguration, and modern
@@ -17,7 +30,7 @@ evidence locally, and explain to the operator what to check next.
 
 ---
 
-## 30-second demo
+## ⚡ 30-second demo
 
 Run a safe host audit on your laptop without root:
 
@@ -54,7 +67,7 @@ The sample IP addresses use documentation-only ranges (`192.0.2.0/24`,
 
 ---
 
-## Purpose
+## 🎯 Purpose
 
 Default log tooling often produces large volumes of low-value output without
 helping the operator understand what actually matters. traxerax-lite focuses
@@ -76,7 +89,7 @@ on:
 
 ---
 
-## Security Model
+## 🔒 Security Model
 
 - **No network calls**: the tool never opens outbound connections unless the
   user explicitly opts in. There are no update checks, no telemetry pings, and
@@ -94,7 +107,7 @@ on:
 
 ---
 
-## Installation
+## 📥 Installation
 
 ### Requirements
 
@@ -116,6 +129,39 @@ cd traxerax-lite
 pip install -e .
 ```
 
+This also installs a `traxerax-lite` console command (equivalent to
+`python -m traxerax_lite.main`).
+
+### Automatic setup (recommended)
+
+```bash
+sudo traxerax-lite --setup
+```
+
+One command turns the tool into a fully automatic installation. It:
+
+- writes a deployment config to `/etc/traxerax-lite/config.yaml` (never
+  clobbers an existing one) with desktop notifications, daemon log
+  ingestion, and integrity scanning enabled,
+- creates `/var/lib/traxerax-lite` (database and review drops),
+- builds the first-run integrity and host-state baselines so the first
+  daemon tick stays quiet instead of flooding you with findings,
+- builds the eBPF probe automatically — as the invoking unprivileged user
+  (`SUDO_USER`), never as root — installs the loader root-owned into
+  `/var/lib/traxerax-lite`, and points the config at it. When a prerequisite
+  is missing (build tools, libbpf, kernel BTF), setup reports the exact
+  reason and everything else still works,
+- detects the active desktop session so the root daemon's `notify-send`
+  alerts reach your desktop (`alerts.notify_user`),
+- renders a hardened systemd unit (sandboxed, no network families) with the
+  correct paths, then enables and starts `traxerax-lite.service`.
+
+From then on, detection and alerting run continuously with no further
+action. Inspect with `journalctl -u traxerax-lite -f` or
+`traxerax-lite --status --config /etc/traxerax-lite/config.yaml
+--db-path /var/lib/traxerax-lite/traxerax_lite.db`. Removal instructions are
+printed at the end of setup.
+
 ### Development setup
 
 ```bash
@@ -126,6 +172,9 @@ For local development runs without installing the package into the active
 environment, prefix commands with `PYTHONPATH=src`.
 
 ### Build the eBPF probe (optional)
+
+`sudo traxerax-lite --setup` builds and installs the probe automatically
+(see above). To build it by hand instead:
 
 ```bash
 make -C ebpf
@@ -138,7 +187,7 @@ not group/world-writable.
 
 ---
 
-## Usage
+## ⌨️ Usage
 
 ### Host audit
 
@@ -201,8 +250,17 @@ sudo python -m traxerax_lite.main --kernel-events --kernel-duration 60
 sudo python -m traxerax_lite.main --daemon
 ```
 
-See `contrib/traxerax-lite.service` for a systemd unit example and
-`contrib/cron.example` for cron scheduling.
+Each tick collects host state, runs change detection, audit checks,
+integrity scanning, and rootkit detection, and — when
+`daemon.run_log_ingestion` is enabled (the default) — incrementally ingests
+the security-relevant journald units (and the `sudo` syslog identifier) so
+log-based detection (SSH brute-force, fail2ban, sprayed users, repeated
+sudo authentication failures) also runs automatically.
+
+The easiest way to run the daemon is `sudo traxerax-lite --setup` (see
+above), which installs and starts it as a systemd service. See
+`contrib/traxerax-lite.service` for a unit template and
+`contrib/cron.example` for cron scheduling of the one-shot modes instead.
 
 ### Background operation & alerts
 
@@ -212,14 +270,18 @@ steady-state daemon stays silent until something actually changes:
 
 - a styled terminal warning on text output,
 - one desktop notification per run via the local `notify-send` binary
-  (skipped silently when it is not installed; no network is involved),
+  (skipped silently when it is not installed; no network is involved).
+  When the daemon runs as root, `alerts.notify_user` names the desktop user
+  whose session receives the notification (via `runuser` on their session
+  bus); `--setup` detects and configures this automatically,
 - a JSON review drop per run with new findings in `data/output/drops`
   (`run-<timestamp>-<id>.json` plus a `latest.json` pointer, pruned to
   `alerts.max_drops`).
 
 Alerting is controlled by the `alerts:` config section (`enabled`,
 `min_severity`, `desktop_notify`, `terminal_warning`, `drop_dir`,
-`max_drops`). To check what happened lately without running anything:
+`max_drops`, `notify_user`). To check what happened lately without running
+anything:
 
 ```bash
 python -m traxerax_lite.main --status            # text
@@ -255,7 +317,9 @@ python -m traxerax_lite.main --journal --since 24h
 
 `--journal` runs the local `journalctl` binary (no network) for the units
 mapped under the `journald:` config section (defaults: `ssh`/`sshd` for
-auth, `fail2ban`, `nginx`, `postfix`/`dovecot` for mail) and can be
+auth, `fail2ban`, `nginx`, `postfix`/`dovecot` for mail) plus the syslog
+identifiers `sudo`, `gdm-password`, `sddm-helper`, and `login` — so local
+graphical and TTY login failures on desktops are covered too — and can be
 combined with file sources in one run. Without root or group
 `adm`/`systemd-journal` membership journalctl may see only a subset of
 entries; the run degrades gracefully and reports what it could read.
@@ -286,7 +350,7 @@ The `hunt` report mode exposes analyst-focused presets:
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 The tool uses a YAML configuration file at `config/default.yaml` to control
 detection thresholds, audit rules, integrity monitoring, host collectors,
@@ -343,6 +407,10 @@ host:
     authorized_keys: true
     shell_profiles: true
     sudoers: true
+    xdg_autostart: true
+    systemd_user_units: true
+    usb_devices: true
+    browser_extensions: true
 
 kernel:
   enabled: true
@@ -379,8 +447,14 @@ changes:
   users: true
   kernel_modules: true
   listening_ports: true
+  xdg_autostart: true
+  systemd_user_units: true
+  usb_devices: true
+  browser_extensions: true
   ignored_listen_ports: []
   ignored_kernel_modules: []
+  ignored_usb_devices: []
+  ignored_browser_extensions: []
 
 daemon:
   interval_seconds: 300
@@ -403,7 +477,7 @@ See `config/default.yaml` for the full set of options.
 
 ---
 
-## Current Capabilities
+## 🧰 Current Capabilities
 
 ### 1. Multi-Source Log Parsing
 
@@ -425,6 +499,10 @@ Live host state is collected via `/proc`, `/sys`, and local filesystem reads:
 - SSH `authorized_keys`
 - shell profiles and rc files
 - sudoers configuration
+- XDG autostart entries and KDE autostart scripts (desktop persistence)
+- systemd user units and timers, including enablement links
+- USB device inventory with interface classes (`/sys/bus/usb`)
+- browser extensions (Chromium-family and Firefox, from on-disk profiles)
 
 ### 3. Configuration Audit
 
@@ -447,15 +525,22 @@ Deterministic checks with no external data:
 - kernel modules visible in `/sys/module` but hidden from `/proc/modules`
 - file capabilities on binaries (`security.capability` xattr; dangerous
   grants like cap_setuid are high, benign ones like cap_net_raw are low)
+- snaps installed with classic/devmode confinement (unsandboxed)
+- flatpak apps with sandbox-breaking permissions (host/home filesystem,
+  unrestricted D-Bus session or device access)
 
 ### 4. Cross-Run Change Detection
 
 Each run's host state is diffed against prior runs (the first run is the
 baseline). Flags new or changed systemd units, cron files, SSH
-`authorized_keys`, shell profiles, sudoers files, user accounts and group
-membership, kernel
-modules, and listening ports. Tunable per category under the `changes:`
-config section; re-run `--learn-baseline` after intentional changes.
+`authorized_keys`, shell profiles, sudoers files, XDG autostart entries,
+systemd user units, user accounts and group membership, kernel
+modules, and listening ports. On desktops it also flags new USB devices
+(escalated when a device presents an unexpected HID/keyboard interface —
+the BadUSB tell) and newly installed or changed browser extensions
+(escalated when sideloaded or requesting high-risk permissions). Tunable
+per category under the `changes:` config section; re-run `--learn-baseline`
+after intentional changes.
 
 ### 5. File Integrity Monitoring
 
@@ -527,7 +612,7 @@ than `daemon.retention_days` are pruned each tick.
 
 ---
 
-## Known Limitations
+## ⚠️ Known Limitations
 
 No single tool can guarantee detection of a determined kernel attacker.
 traxerax-lite is designed to be transparent about its coverage:
@@ -543,7 +628,7 @@ traxerax-lite is designed to be transparent about its coverage:
 
 ---
 
-## Notes
+## 📝 Notes
 
 - Baseline suppression happens before log events are inserted into SQLite.
 - If you process logs incrementally into the same database, recent historical
